@@ -1,0 +1,89 @@
+body {
+    /*height: 100vh;*/
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   overflow: hidden;
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   background-color: lightslategray;
+}
+
+.title {
+   font-size: 36px;
+   margin-bottom: 16px;
+}
+
+.cell {
+   width: 15px;
+   height: 15px;
+   border: 1px solid lightblue;
+}
+
+.cell.fruit {
+   background-color: tomato;
+}
+
+.cell.snake {
+   background-color: black;
+}
+
+#score-label {
+   font-size: 24px;
+}
+
+#info-label {
+   display: flex;
+   justify-content: space-between;
+}
+
+#button-overlay {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+
+   background-color: white;
+   margin-top: 8px;
+}
+
+td {
+    background-color: gray;
+    text-align: center;
+}
+
+.padding-cell {
+    background: inherit;
+}
+
+.score {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   font-size: 22px;
+   border: 1px solid black;
+   
+}
+
+.game-board {
+    column-span: all;
+}
+
+button {
+   padding: 8px;
+   background-color: tomato;
+   border: none;
+   border-radius: 4px;
+
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   font-size: 22px;
+}
+
+button:hover {
+   cursor: pointer;
+}
+
+button:focus {
+   outline: none;
+}
+
+.hidden {
+   display: none;
+}
