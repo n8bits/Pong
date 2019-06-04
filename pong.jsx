@@ -1,11 +1,12 @@
 let gameLoop;
 let game;
 let physics;
+let computer;
 
 // Dimensions of game objects expressed as percentage of total board width
-const paddleWidth = 2;
+const paddleWidth = 1;
 const paddleHeight = 15;
-const ballSize = 1.5;
+const ballSize = 1;
 const fontSize = 6;
 
 $(function () {
@@ -32,6 +33,7 @@ function initGame() {
         player1Score: 0,
         player2Score: 0,
         servingPlayer: 1,
+        difficulty: 20, // from 1 to 100
         serving: true
     };
 
@@ -42,12 +44,25 @@ function initGame() {
         },
         paddle2: {
             lastPosition: 50,
-            velocity: 0
+            velocity: 0,
+            acceleration: 0
         },
         lastTick: performance.now() // used to get elapsed time for physics calculations
     };
 
+    // These values are used in a PID-like algorithm to control the computer's paddle
+    computer = {
+        lastError: 0,
+        accumulatedError: 0,
+        porportionalErrorMultiplier: 0.0000005,
+        derivativeErrorMultiplier: 0.0000000000,
+        integratedErrorMultiplier: 0.00000000000001,
+        dampening: 0.751,
+        reactionSpeed: 50 // 1 to 100 - determines how close the ball must be to the computer before the computer responds
+    };
+
     physics.lastTick = performance.now();
+
 }
 
 // Kick off rendering and phyics loops
@@ -59,6 +74,10 @@ function beginGame() {
     setInterval(() => {
         doPhysics();
     }, game.tickInterval);
+
+    setInterval(() => {
+        controlComputer();
+    }, 1);
 }
 
 // Resets the ball after a player has scored
@@ -71,6 +90,7 @@ function resetBall() {
 }
 
 function serveBall() {
+    document.getElementById("message").innerText = "The computer will get harder the more you score. Try and keep up!"
 
     if (!game.serving) {
         return;
@@ -85,12 +105,11 @@ function serveBall() {
     game.serving = false;
 }
 
-
-
 // Determine if a player has scored and resets as necessary
 function checkScores() {
     if (game.ballPosX > 100) {
         game.player1Score += 1;
+        game.difficulty+=5;
         resetBall();
     }
 
@@ -101,15 +120,26 @@ function checkScores() {
 }
 //******************************************* */
 
-//***************** USER INPUT **************
+
 function onMouseMove(e) {
+
     // paddle moves with the mouse cursor
     const canvas = document.querySelector("#canvas");
-    var paddleY = Math.max(0, e.clientY);
-    paddleY = Math.min(canvas.height, e.clientY);
+    var canvasBounds = canvas.getBoundingClientRect();
+    var paddleY = Math.max(0, e.clientY - canvasBounds.y);
+
+    if (paddleY != 0) {
+        paddleY = Math.min(canvas.height, e.clientY - canvasBounds.y);
+    }
 
     var paddlePos = (paddleY / canvas.height) * 100;
 
+    // Prevent the paddle from being half on screen
+    if (paddlePos - (paddleHeight / 2) < 0) {
+        paddlePos = (paddleHeight / 2);
+    } else if (paddlePos + (paddleHeight / 2) > 100) {
+        paddlePos = 100 - (paddleHeight / 2);
+    }
     game.p1PaddlePos = paddlePos;
 
     // keep the ball in the center of the serving player's paddle until it is served
@@ -122,31 +152,67 @@ function onMouseMove(e) {
         game.ballPosX = paddleWidth + ballSize; // just in front of the paddle
     }
 }
-//******************************************
+
 
 //************** PHYSICS *******************
 function doPhysics() {
     var elapsedTime = (performance.now() - physics.lastTick);
 
-    // calculate and store the paddle velocity for later use
+    // calculate and store the paddle velocity (used to calculate ball acceleration)
     physics.paddle1.velocity = (game.p1PaddlePos - physics.paddle1.lastPosition) / elapsedTime;
     physics.paddle1.lastPosition = game.p1PaddlePos;
 
-    if(!game.serving){
+    physics.paddle2.lastPosition = game.p2PaddlePos;
+
+    if (!game.serving) {
         checkCollisions();
         checkScores();
     }
-    
+
     var dx = game.ballVelX * elapsedTime * 15;
     var dy = game.ballVelY * elapsedTime * 15;
 
     game.ballPosX += dx;
     game.ballPosY += dy;
 
-    game.p2PaddlePos = game.ballPosY;
+    var da = physics.paddle2.acceleration * elapsedTime * 15;
+    
+    dy = physics.paddle2.velocity * elapsedTime * 15;
+    game.p2PaddlePos += dy;
+    physics.paddle2.velocity += da;
+
     physics.lastTick = performance.now();
 }
 
+function controlComputer() {
+
+    // How far off target are we
+    var elapsedTime = (performance.now() - physics.lastTick);
+    var target = game.ballPosY;
+    var porportionalError = target - game.p2PaddlePos;
+    var adjustedPorpotionalModifier = (computer.porportionalErrorMultiplier) + (game.difficulty / 100000); //modulate computer response based on difficulty
+    if(!ballInReactionRange()){
+        adjustedPorpotionalModifier /= 5;
+    }
+    // How quickly is error decreasing?
+    var changeInError = computer.lastError - porportionalError;
+    var adjustment = (porportionalError * adjustedPorpotionalModifier) 
+    + (changeInError * computer.derivativeErrorMultiplier)
+    + (computer.accumulatedError * computer.integratedErrorMultiplier);
+
+    physics.paddle2.velocity *= computer.dampening;
+
+    if(game.ballPosX > computer.reactionSpeed || true){
+        physics.paddle2.velocity += adjustment;
+    }
+    
+    computer.lastError = porportionalError;
+    computer.accumulatedError += porportionalError; // steady state error
+}
+
+function ballInReactionRange() {
+    return game.ballPosX > computer.reactionSpeed;
+}
 
 function checkCollisions() {
     const canvas = document.querySelector("#canvas");
@@ -163,6 +229,7 @@ function checkCollisions() {
         game.ballVelY += physics.paddle1.velocity / 100;
         game.ballVelX *= -1;
         game.ballPosX = paddleWidth + (ballSize);
+        computer.reactionSpeed = (Math.random() * 100); // randomly set how quickly the computer will respond to the shot
     }
 
     // Check collision with right paddle (can only intersect on right side)
@@ -170,25 +237,23 @@ function checkCollisions() {
 
     if (ball.x + ball.radius >= paddle2Bounds.x1 && ball.y + ball.radius > paddle2Bounds.y1 && ball.y - ball.radius < paddle2Bounds.y2) {
         var bounceAngle = Math.atan2(game.ballVelX, game.ballVelY);
+        game.ballVelY += physics.paddle2.velocity / 100;
         game.ballVelX *= -1;
         game.ballPosX = 100 - paddleWidth - ballSize;
-
     }
 
     // Check collisions with top and bottom walls
-    if (ball.y - ball.radius <= 0){
+    if (ball.y - ball.radius <= 0) {
         game.ballPosY = 0 + (ballSize * 2);
         game.ballVelY *= -1;
     }
 
-    if (ball.y + ball.radius >= canvas.height){
+    if (ball.y + ball.radius >= canvas.height) {
         game.ballPosY = 100 - (ballSize * 2);
         game.ballVelY *= -1;
     }
 }
 /******************************************/
-
-//************ RENDERING *****************/
 
 function drawGame() {
     const canvas = document.querySelector("#canvas");
@@ -226,7 +291,6 @@ function drawGame() {
     document.getElementById("player1-score").innerText = game.player1Score;
     document.getElementById("player2-score").innerText = game.player2Score;
 }
-//***************************************** */
 
 /********* COORDINATE SPACE TRANSLATION FUNCTIONS *****************/
 function getBallDrawSize() {
