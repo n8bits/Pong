@@ -1,17 +1,17 @@
 <html>
-    <head>
-        <link rel="stylesheet" href="styles.css?v=1.0">
-    </head>
 
-    <body>
-        <body>
-            <table>
-                <tbody>
-                    <tr >
-                        <td id="message" colspan=30 class="score">
-                            Welcome to Pong! Cick on the board to start.
-                        </td>
-                        <!-- <td align="left">
+<head>
+    <link rel="stylesheet" href="styles.css?v=1.0">
+</head>
+
+<body>
+    <table>
+        <tbody>
+            <tr>
+                <td id="message" colspan=30 class="score">
+                    Welcome to Pong! Cick on the board to start.
+                </td>
+                <!-- <td align="left">
                             <select>
                                 <option value="Easy">Easy</option>
                                 <option value="Normal">Normal</option>
@@ -20,25 +20,26 @@
                                 <option value="Impossible">Impossible</option>
                             </select>
                         </td> -->
-                    </tr>
-                    <tr>
-                        <td colspan="30">
-                            <div>
-                                <canvas id="canvas" width="900" height="600"></canvas>
-                            </div>
-                            
-                        </td>
-                    </tr>
-                        <tr>
-                            <td  text-align="center" class="score" id="player1-score">0</td>
-                            <td class="padding-cell" background-color="white" width=400></td>
-                            <td text-align="right" class="score" id="player2-score">0</td>
-                        </tr>
-                </tbody>
-            </table>
-            
-            <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
-            <script src="pong.jsx"></script>
-        </body>
-    </body>
+            </tr>
+            <tr>
+                <td colspan="30">
+                    <div>
+                        <canvas id="canvas" width="900" height="600"></canvas>
+                    </div>
+
+                </td>
+            </tr>
+            <tr>
+                <td text-align="center" class="score" id="player1-score">0</td>
+                <td class="padding-cell" background-color="white" width=400></td>
+                <td text-align="right" class="score" id="player2-score">0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E=" crossorigin="anonymous"></script>
+    <script src="pong.jsx"></script>
+</body>
+
 </html>

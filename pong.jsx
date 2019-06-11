@@ -2,8 +2,9 @@ let gameLoop;
 let game;
 let physics;
 let computer;
+let initialized = false;
 
-// Dimensions of game objects expressed as percentage of total board width
+// Dimensions of game objects expressed as percentage of total board width (makes resizing easier)
 const paddleWidth = 1;
 const paddleHeight = 15;
 const ballSize = 1;
@@ -14,7 +15,44 @@ $(function () {
     beginGame();
     $(document).mousemove(onMouseMove);
     $('#canvas').click(serveBall);
+    fadeElementIn("message", 800);
 });
+
+function fadeElementIn(elementId, duration){
+
+    var element = document.getElementById(elementId);
+    var step = 1 / (duration / 10);
+    element.style.opacity = "0.0";
+    var fadeInInterval = setInterval(() => {
+        
+        var element = document.getElementById(elementId);
+        var currentOpacity = parseFloat(element.style.opacity);
+        if(currentOpacity < 1){
+            currentOpacity+=step;
+            element.style.opacity = currentOpacity;
+        }else{
+            clearInterval(fadeInInterval);
+        }
+    }, 10);
+}
+
+function fadeElementOut(elementId, duration){
+
+    var element = document.getElementById(elementId);
+    var step = 1 / (duration / 10);
+    element.style.opacity = "1.0";
+    var fadeOutInterval = setInterval(() => {
+        
+        var element = document.getElementById(elementId);
+        var currentOpacity = parseFloat(element.style.opacity);
+        if(currentOpacity > 0){
+            currentOpacity-=step;
+            element.style.opacity = currentOpacity;
+        }else{
+            clearInterval(fadeOutInterval);
+        }
+    }, 10);
+}
 
 //****************** GAME LOGIC ******************
 
@@ -77,7 +115,7 @@ function beginGame() {
 
     setInterval(() => {
         controlComputer();
-    }, 1);
+    }, 7);
 }
 
 // Resets the ball after a player has scored
@@ -85,12 +123,17 @@ function resetBall() {
     game.serving = true;
     game.ballVelX = 0;
     game.ballVelY = 0;
-    game.ballPosX = 50; // ball needs to be moved in bounds to prevent additional points being tallied 
-    game.ballPosY = 50;
+    game.ballPosX = -1; // ball needs to be moved in bounds to prevent additional points being tallied 
+    game.ballPosY = -1;
 }
 
 function serveBall() {
-    document.getElementById("message").innerText = "The computer will get harder the more you score. Try and keep up!"
+    if(!initialized){
+        fadeElementIn("message", 600);
+        document.getElementById("message").innerText = "The computer will get harder the more you score. Try and keep up!"
+    }
+
+    initialized = true;
 
     if (!game.serving) {
         return;
@@ -152,7 +195,6 @@ function onMouseMove(e) {
         game.ballPosX = paddleWidth + ballSize; // just in front of the paddle
     }
 }
-
 
 //************** PHYSICS *******************
 function doPhysics() {
@@ -226,6 +268,8 @@ function checkCollisions() {
 
     if (ball.x - ball.radius <= paddle1Bounds.x2 && ball.y + ball.radius > paddle1Bounds.y1 && ball.y - ball.radius < paddle1Bounds.y2) {
         var bounceAngle = Math.atan2(game.ballVelX, game.ballVelY);
+        var impactOffset = (game.p1PaddlePos - game.ballPosY) / (paddleHeight/2);
+        var xVelocityChange = (physics.paddle1.velocity / 100) * impactOffset;
         game.ballVelY += physics.paddle1.velocity / 100;
         game.ballVelX *= -1;
         game.ballPosX = paddleWidth + (ballSize);
