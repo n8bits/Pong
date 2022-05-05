@@ -71,7 +71,7 @@ function initGame() {
         player1Score: 0,
         player2Score: 0,
         servingPlayer: 1,
-        difficulty: 20, // from 1 to 100
+        difficulty: 3, // from 1 to 100
         serving: true
     };
 
@@ -152,7 +152,7 @@ function serveBall() {
 function checkScores() {
     if (game.ballPosX > 100) {
         game.player1Score += 1;
-        game.difficulty+=5;
+        game.difficulty+=1;
         resetBall();
     }
 
