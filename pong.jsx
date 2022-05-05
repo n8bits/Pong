@@ -6,7 +6,7 @@ let initialized = false;
 
 // Dimensions of game objects expressed as percentage of total board width (makes resizing easier)
 const paddleWidth = 1;
-const paddleHeight = 15;
+const paddleHeight = 30;
 const ballSize = 1;
 const fontSize = 6;
 
