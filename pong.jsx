@@ -123,8 +123,8 @@ function resetBall() {
     game.serving = true;
     game.ballVelX = 0;
     game.ballVelY = 0;
-    game.ballPosX = -1; // ball needs to be moved in bounds to prevent additional points being tallied 
-    game.ballPosY = -1;
+    game.ballPosX = 0; // ball needs to be moved in bounds to prevent additional points being tallied 
+    game.ballPosY = 0;
 }
 
 function serveBall() {
